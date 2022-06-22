@@ -1,0 +1,15 @@
+---
+
+- name: Verify
+  hosts: all
+
+  tasks:
+    - name: Execute trivy version to capture output
+      command: "trivy version"
+      register: trivy_current_version
+      failed_when: false
+
+    - name: Ensure trivy not installed
+      assert:
+        that:
+          - trivy_current_version.rc != 0
