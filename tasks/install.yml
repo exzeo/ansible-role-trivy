@@ -1,0 +1,46 @@
+---
+- name: Check current trivy version
+  ansible.builtin.command: "trivy version --format json"
+  register: trivy_current_version
+  changed_when: false
+  failed_when: false
+
+- name: Get Latest Version
+  ansible.builtin.uri:
+    url: "{{ trivy_latest_url }}"
+  register: trivy_latest_info
+  changed_when: false
+  retries: 5
+  delay: 2
+  when: trivy_version|length == 0
+
+- name: Set Latest Version
+  ansible.builtin.set_fact:
+    trivy_version: "{{ trivy_latest_info.json.tag_name | replace('v','') }}"
+  when: trivy_version|length == 0
+
+- name: Install trivy
+  when: >
+    (trivy_current_version.rc != 0) or
+    (trivy_version|length > 0 and trivy_version not in trivy_current_version.stdout) or
+    (trivy_version|length == 0 and trivy_current_version.stdout not in trivy_latest_info.json.tag_name)
+
+  block: 
+  - name: Download trivy
+    ansible.builtin.get_url:
+      url: "{{ trivy_download_url }}"
+      dest: "/tmp/trivy-{{ trivy_version }}.deb"
+      mode: 0755
+      force: yes
+    register: trivy_downloaded
+    retries: 5
+    delay: 2
+
+  - name: Install trivy
+    ansible.builtin.command: "dpkg -i /tmp/trivy-{{ trivy_version }}.deb"
+    changed_when: false
+    
+  - name: remove tmp dir
+    ansible.builtin.file:
+      state: absent
+      path: "/tmp/trivy-{{ trivy_version }}.deb"

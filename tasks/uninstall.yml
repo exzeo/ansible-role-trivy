@@ -1,0 +1,9 @@
+---
+
+  - name: Uninstall trivy
+    ansible.builtin.apt:
+      name: trivy
+      state: absent
+      force: true
+    retries: 5
+    delay: 2

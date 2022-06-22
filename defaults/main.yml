@@ -1,0 +1,8 @@
+---
+
+# Version of 'trivy' to install, defaults to latest version
+# trivy_version: "0.27.1"
+trivy_version: ""
+
+# Toggling this will uninstall from the server
+uninstall: false

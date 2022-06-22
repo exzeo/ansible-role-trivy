@@ -1,0 +1,14 @@
+- name: Verify
+  hosts: all
+
+  tasks:
+    - name: Check current trivy version
+      command: "trivy version --format json"
+      register: trivy_current_version
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure trivy version output contains correct version string
+      assert:
+        that:
+          - '"0.25.3" in trivy_current_version.stdout'

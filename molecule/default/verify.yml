@@ -1,0 +1,21 @@
+---
+
+- name: Verify
+  hosts: all
+
+  tasks:
+    - name: Check current trivy version
+      command: "trivy version --format json"
+      register: trivy_current_version
+      changed_when: false
+      failed_when: false
+
+    - name: Get Latest Version
+      uri:
+        url: "https://api.github.com/repos/aquasecurity/trivy/releases/latest"
+      register: trivy_latest_info
+
+    - name: Ensure trivy version output contains correct version string
+      assert:
+        that:
+          - '(trivy_current_version.stdout | from_json).Version in trivy_latest_info.json.tag_name'
